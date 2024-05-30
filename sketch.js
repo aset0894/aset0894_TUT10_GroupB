@@ -19,7 +19,7 @@ let red;
 let randomColors;
 
 function setup() {
-  createCanvas(500, 500);
+  createCanvas(windowWidth, windowHeight);
   rectangleWidth = width / numRectangles;
   rectangleHeight = height / numRectangles;
 
@@ -33,10 +33,10 @@ function setup() {
   randomColors = [yellow, blue, beige, red];
 
   // Define starting points for vertical grid lines
-  let verticalStartX = [140, 220, 260, 380];
+  let verticalStartX = [0.28*windowWidth, 0.44*windowWidth, 0.52*windowWidth, 0.76*windowWidth];
 
   // Define starting points for horizontal grid lines
-  let horizontalStartY = [60, 260, 400];
+  let horizontalStartY = [0.12*windowHeight, 0.52*windowHeight, 0.8*windowHeight];
 
   // Create horizontal grid lines
   for (let i = 0; i < horizontalStartY.length; i++) {
@@ -61,8 +61,8 @@ function setup() {
   }
 
   // Character's block width and height
-  let charaWidth = random(30,50); // randomised between 30 to 50
-  let charaHeight = random(30,50);
+  let charaWidth = random(0.06*windowWidth,0.1*windowWidth); // randomised between 30 to 50
+  let charaHeight = random(0.06*windowHeight,0.1*windowHeight);
 
   // Define each of the boundaries with the start (x,y) points and end (x,y) points
   let bound_startX = [0+charaWidth/2, verticalStartX[2]+rectangleWidth+charaWidth/2, verticalStartX[3]+rectangleWidth+charaWidth/2];
@@ -122,6 +122,11 @@ function draw() {
   }
   
   stroke(0);
+}
+
+// Adapt to the changes of canvas size
+function windowResized(){
+  resizeCanvas(windowWidth, windowHeight);
 }
 
 class Rectangle {
