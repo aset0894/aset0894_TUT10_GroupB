@@ -10,27 +10,10 @@ let lineSpacing = 10;
 let charaBlocks = [];   // character blocks array
 let boundary = [];  // boundary array
 
-// grid color variables
-let yellow;
-let blue;
-let beige;
-let red;
-
-let randomColors;
-
 function setup() {
   createCanvas(windowWidth, windowHeight);
   rectangleWidth = width / numRectangles;
   rectangleHeight = height / numRectangles;
-
-  // Create a colors scheme for the rectangles in grid
-  yellow = color(236, 214, 38);
-  blue = color(68, 105, 186);
-  beige = color(217, 216, 211);
-  red = color(176, 58, 46);
-
-  // Create array of the color scheme
-  randomColors = [yellow, blue, beige, red];
 
   // Define starting points for vertical grid lines
   let verticalStartX = [0.28*windowWidth, 0.44*windowWidth, 0.52*windowWidth, 0.76*windowWidth];
@@ -39,26 +22,10 @@ function setup() {
   let horizontalStartY = [0.12*windowHeight, 0.52*windowHeight, 0.8*windowHeight];
 
   // Create horizontal grid lines
-  for (let i = 0; i < horizontalStartY.length; i++) {
-    let startY = horizontalStartY[i];
-    for (let j = 0; j < numRectangles; j++) {
-      let x = j * rectangleWidth;
-      let y = startY;
-      let horizontalLines = new Rectangle(x, y, rectangleWidth, rectangleHeight, random(randomColors));
-      lineRectangles.push(horizontalLines);
-    }
-  }
+  createGridLine("horizontal", horizontalStartY);
 
   // Create vertical grid lines
-  for (let i = 0; i < verticalStartX.length; i++) {
-    let startX = verticalStartX[i];
-    for (let j = 0; j < numRectangles; j++) {
-      let x = startX;
-      let y = j * rectangleHeight;
-      let verticalLines = new Rectangle(x, y, rectangleWidth, rectangleHeight, random(randomColors));
-      lineRectangles.push(verticalLines);
-    }
-  }
+  createGridLine("vertical", verticalStartX);
 
   // Character's block width and height
   let charaWidth = random(0.06*windowWidth,0.1*windowWidth); // randomised between 30 to 50
@@ -107,6 +74,7 @@ function setup() {
 
 function draw() {
   background(230, 213, 190);
+
   // draw the grid made up of rectangles
   if (drawRectangles) {
     for (const rect of lineRectangles) {
@@ -122,6 +90,33 @@ function draw() {
   }
   
   stroke(0);
+}
+
+function createGridLine(direction, startingArray, colorInput){
+    // Create a colors scheme for the rectangles in grid
+    let yellow = color(236, 214, 38);
+    let blue = color(68, 105, 186);
+    let beige = color(217, 216, 211);
+    let red = color(176, 58, 46);
+
+    // Create array of the color scheme
+    let randomColors = [yellow, blue, beige, red];
+    
+    for (let i = 0; i < startingArray.length; i++) {
+        let start = startingArray[i];
+        for (let j = 0; j < numRectangles; j++) {
+            if(direction === "horizontal"){
+                x = j * rectangleWidth;
+                y = start;
+            }else{
+                x = start;
+                y = j * rectangleHeight;
+            }
+            let rectColor = colorInput ?? random(randomColors);
+            let gridLine = new Rectangle(x, y, rectangleWidth, rectangleHeight, rectColor);
+            lineRectangles.push(gridLine);
+        }
+    }
 }
 
 // Adapt to the changes of canvas size
@@ -160,6 +155,7 @@ class chara1{
     this.direction = 1; // direction of character's movement (1 = move right or move down; -1 = move left or move up)
     this.Horizontal = charaDetails.state; // true if the character moves horizontally, and false if it moves vertically
     this.boundary = charaDetails.boundary; // set the boundary in which the character can move
+    this.collided = false;
   }
 
   update() {
@@ -219,10 +215,12 @@ class chara1{
     if(this.Horizontal){
       if(this.x <= this.boundary.startX || this.x > this.boundary.endX){
         this.direction *= -1;
+        this.collided = true;
       }
     } else {
       if(this.y <= this.boundary.startY || this.y > this.boundary.endY){
         this.direction *= -1;
+        this.collided = true;
       }
     }
   }
