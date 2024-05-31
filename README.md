@@ -31,7 +31,7 @@ The inspiration for this prototype modification comes from the original pacman g
 <br>
 Figure 1. Pacman game (Druid, 2016)
 
-I thought it would be interesting to apply the color scheme of dark background with randomised constranting color, and thus change the original "light mode" to the "dark mode".
+I thought it would be interesting to apply the color scheme of dark background with randomly contrasting color, and thus change the original "light mode" to the "dark mode".
 
 
 ### 3. Technical explanation
