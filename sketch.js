@@ -10,6 +10,8 @@ let verticalGrid
 let grid;
 let noiseOffset = 0;
 let noiseIncrement = 0.001;
+let switchInterval = 200;
+let defaultState = true;
 
 
 // character blocks variable settings
@@ -76,68 +78,48 @@ function setup() {
     }else{
       charaBlocks.push(new chara2(charaDetails));
     }
+
+    startFrame = frameCount;
   }
 }
 
 function draw() {
-  //background(230, 213, 190);
-  background(0)
-
+  if(frameCount % switchInterval == 0){
+    defaultState = !defaultState;
+  }
   let n = noise(frameCount * 0.005);
   noiseOffset += noiseIncrement;
 
-  let backgroundColor = map(n,0,1,0,50);
-  background(backgroundColor);
-
-  // draw each character block
-  for(let chara of charaBlocks){
-    chara.move();
-    chara.checkCollision();
-    chara.draw();
-
-    if(chara.collidedHorizontal){
-        horizontalGrid.updateColors(n);
-    }else if(chara.collidedHorizontal == false){
-        horizontalGrid.draw();
-    }
-
-    if(chara.collidedVertical){
-        verticalGrid.updateColors(n);
-    }else if(chara.collidedVertical == false){
-        verticalGrid.draw();
-    }
-
-
-  }
+  if(defaultState){
+    background(230, 213, 190);
+    for(let chara of charaBlocks){
+      chara.move();
+      chara.checkCollision();
+      chara.draw();
   
+      horizontalGrid.draw();
+      verticalGrid.draw();
+    }
+  } else {
+    background(0);
+    for(let chara of charaBlocks){
+      chara.move();
+      chara.checkCollision();
+      chara.draw();
+    if(chara.collidedHorizontal){
+      horizontalGrid.updateColors(n);
+    }else if(chara.collidedHorizontal == false){
+      horizontalGrid.draw();
+    }
+  
+    if(chara.collidedVertical){
+      verticalGrid.updateColors(n);
+    }else if(chara.collidedVertical == false){
+      verticalGrid.draw();
+    }
+  }
   stroke(0);
 }
-
-function createGridLine(direction, startingArray, colorInput){
-    // Create a colors scheme for the rectangles in grid
-    let yellow = color(236, 214, 38);
-    let blue = color(68, 105, 186);
-    let beige = color(217, 216, 211);
-    let red = color(176, 58, 46);
-
-    // Create array of the color scheme
-    let randomColors = [yellow, blue, beige, red];
-    
-    for (let i = 0; i < startingArray.length; i++) {
-        let start = startingArray[i];
-        for (let j = 0; j < numRectangles; j++) {
-            if(direction === "horizontal"){
-                x = j * rectangleWidth;
-                y = start;
-            }else{
-                x = start;
-                y = j * rectangleHeight;
-            }
-            let rectColor = colorInput ?? random(randomColors);
-            let gridLine = new Rectangle(x, y, rectangleWidth, rectangleHeight, rectColor);
-            lineRectangles.push(gridLine);
-        }
-    }
 }
 
 // Adapt to the changes of canvas size
@@ -214,12 +196,6 @@ class gridLine {
 
         updateColors(n) {
             for (let i = 0; i < this.lineRectangles.length; i++) {
-              let currentColor = this.lineRectangles[i].color;
-              let randomColor = color(random(100,255), random(200,255), random(100,255));
-              /*let r = lerp(red(currentColor), red(randomColor), n);
-              let g = lerp(green(currentColor), green(randomColor), n);
-              let b = lerp(blue(currentColor), blue(randomColor), n);*/
-                  // create dynamic color change with perlin noise
                 let r = map(noise(this.offset), 0, 1, 0, 255);
                 let g = map(noise(this.offset + 15), 0, 1, 0, 255);
                 let b = map(noise(this.offset + 30), 0, 1, 10, 255);
@@ -246,9 +222,6 @@ class chara1{
     this.boundary = charaDetails.boundary; // set the boundary in which the character can move
     this.collidedHorizontal = false;
     this.collidedVertical = false;
-
-    this.collisionFrame = 0;
-    this.collisionDelay = 10;
   }
 
   update() {
@@ -301,32 +274,10 @@ class chara1{
     }
   }
 
-  /*checkCollision(){
-    // check the collision with the grid
-    // if it moves horizontal, change the direction when it touches the x boundary
-    // if it moves vertical, change the direction when it touches the y boundary
-    if(this.Horizontal){
-      if(this.x <= this.boundary.startX || this.x > this.boundary.endX){
-        this.direction *= -1;
-        if(!this.collidedHorizontal){
-            this.collidedHorizontal = true;
-            this.collisionFrame = frameCount;
-        }
-      } else if (frameCount - this.collisionFrame > this.collisionDelay) {
-        this.collidedHorizontal = false;
-      }
-    } else {
-      if(this.y <= this.boundary.startY || this.y > this.boundary.endY){
-        this.direction *= -1;
-        if(!this.collidedVertical){
-            this.collidedVertical = true;
-            this.collisionFrame = frameCount;
-        }
-      } else if (frameCount - this.collisionFrame > this.collisionDelay){
-        this.collidedVertical = false;
-      }
-    }
-  }*/
+  drawRandomNoisyRects(){
+
+  }
+
   checkCollision(){
     // check the collision with the grid
     // if it moves horizontal, change the direction when it touches the x boundary
@@ -364,9 +315,6 @@ class chara2{
     this.boundary = charaDetails.boundary; // set the boundary in which the character can move
     this.collidedHorizontal = false;
     this.collidedVertical = false;
-
-    this.collisionFrame = 0;
-    this.collisionDelay = 10;
   }
   
   draw() {    
