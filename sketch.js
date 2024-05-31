@@ -1,18 +1,17 @@
 // rectangles in grid variable settings
-let numRectangles = 25;
+let numRectangles = 25; // number of rectangles
+
+// rectangle width and height
 let rectangleWidth;
 let rectangleHeight;
-let lineRectangles = [];
-let drawRectangles = true;
+let lineRectangles = [];  // array to store all the grids rectangle
+
+// initialise the horizontal and vertical grid lines
 let horizontalGrid;
 let verticalGrid 
 
-let grid;
-let noiseOffset = 0;
-let noiseIncrement = 0.001;
-let switchInterval = 200;
-let defaultState = true;
-
+let switchInterval = 200; // the interval time to switch between default and perlin noise state
+let defaultState = true; // set the default state to true
 
 // character blocks variable settings
 let charaBlocks = [];   // character blocks array
@@ -24,17 +23,16 @@ function setup() {
   rectangleHeight = height / numRectangles;
 
   // Define starting points for vertical grid lines
-    let verticalStartX = [0.28*windowWidth, 0.44*windowWidth, 0.52*windowWidth, 0.76*windowWidth];
+  let verticalStartX = [0.28*width, 0.44*width, 0.52*width, 0.76*width];
 
   // Define starting points for horizontal grid lines
-    let horizontalStartY = [0.12*windowHeight, 0.52*windowHeight, 0.8*windowHeight];
+  let horizontalStartY = [0.12*height, 0.52*height, 0.8*height];
 
   // Create horizontal grid lines
-    horizontalGrid = new gridLine(numRectangles,horizontalStartY,1,rectangleWidth,rectangleHeight);
+  horizontalGrid = new gridLine(numRectangles,horizontalStartY,1,rectangleWidth,rectangleHeight);
 
   // Create vertical grid lines
-    verticalGrid = new gridLine(numRectangles,verticalStartX,2,rectangleWidth,rectangleHeight);
-    //createGridLine("vertical", verticalStartX);
+  verticalGrid = new gridLine(numRectangles,verticalStartX,2,rectangleWidth,rectangleHeight);
 
   // Character's block width and height
   let charaWidth = random(0.06*windowWidth,0.1*windowWidth); // randomised between 30 to 50
@@ -64,8 +62,8 @@ function setup() {
 
     // define charaDetails for all the character blocks
     let charaDetails = {
-      x: random(randomBoundary.startX,randomBoundary.endX), 
-      y: random(randomBoundary.startY,randomBoundary.endY),
+      x: random(randomBoundary.startX,randomBoundary.endX),   // random x position within the boundary
+      y: random(randomBoundary.startY,randomBoundary.endY),   // random y position within the boundary
       w: charaWidth,
       h: charaHeight, 
       state: random()>=0.5,
@@ -86,9 +84,9 @@ function setup() {
 function draw() {
   if(frameCount % switchInterval == 0){
     defaultState = !defaultState;
+    horizontalGrid.resetColors();
+    verticalGrid.resetColors();
   }
-  let n = noise(frameCount * 0.005);
-  noiseOffset += noiseIncrement;
 
   if(defaultState){
     background(230, 213, 190);
@@ -96,7 +94,7 @@ function draw() {
       chara.move();
       chara.checkCollision();
       chara.draw();
-  
+
       horizontalGrid.draw();
       verticalGrid.draw();
     }
@@ -107,13 +105,13 @@ function draw() {
       chara.checkCollision();
       chara.draw();
     if(chara.collidedHorizontal){
-      horizontalGrid.updateColors(n);
+      horizontalGrid.updateColors();
     }else if(chara.collidedHorizontal == false){
       horizontalGrid.draw();
     }
   
     if(chara.collidedVertical){
-      verticalGrid.updateColors(n);
+      verticalGrid.updateColors();
     }else if(chara.collidedVertical == false){
       verticalGrid.draw();
     }
@@ -124,7 +122,11 @@ function draw() {
 
 // Adapt to the changes of canvas size
 function windowResized(){
-  resizeCanvas(windowWidth, windowHeight);
+  let size = Math.min(windowWidth,windowHeight);
+  resizeCanvas(size, size);
+
+  horizontalGrid.recalculateBounds(numRectangles, rectangleWidth, rectangleHeight);
+  verticalGrid.recalculateBounds(numRectangles, rectangleWidth, rectangleHeight);
 }
 
 class Rectangle {
@@ -155,6 +157,7 @@ class gridLine {
         this.rectHeight = rectHeight;
         this.lineRectangles = [];
         this.offset = 0;
+        this.initialColors = [];
         this.initialiseLine();
     }
 
@@ -181,6 +184,7 @@ class gridLine {
                     y = j * this.rectHeight;
                 }
                 let rectColor = random(randomColors);
+                this.initialColors.push(rectColor);
                 let gridLine = new Rectangle(x, y, this.rectWidth, this.rectHeight, rectColor);
                 this.lineRectangles.push(gridLine);
             }
@@ -194,13 +198,26 @@ class gridLine {
             this.offset += 0.003;
         }
 
-        updateColors(n) {
-            for (let i = 0; i < this.lineRectangles.length; i++) {
-                let r = map(noise(this.offset), 0, 1, 0, 255);
-                let g = map(noise(this.offset + 15), 0, 1, 0, 255);
-                let b = map(noise(this.offset + 30), 0, 1, 10, 255);
-              this.lineRectangles[i].changeColor(color(r, g, b));
-            }
+        updateColors() {
+          for (let i = 0; i < this.lineRectangles.length; i++) {
+            let r = map(noise(this.offset + i * 0.1), 0, 1, 0, 255);
+            let g = map(noise(this.offset + i * 0.1 + 10), 0, 1, 0, 255);
+            let b = map(noise(this.offset + i * 0.1 + 20), 0, 1, 10, 255);
+            this.lineRectangles[i].changeColor(color(r, g, b));
+          }
+        }
+        resetColors(){
+          for(let i = 0; i< this.lineRectangles.length; i++){
+            this.lineRectangles[i].changeColor(this.initialColors[i]);
+          }
+        }
+
+        recalculateBounds(numRect, rectWidth, rectHeight){
+          this.numRect = numRect;
+          this.rectWidth = rectWidth;
+          this.rectHeight = rectHeight;
+          this.lineRectangles = [];
+          this.initialiseLine();
         }
 }
 
@@ -274,10 +291,6 @@ class chara1{
     }
   }
 
-  drawRandomNoisyRects(){
-
-  }
-
   checkCollision(){
     // check the collision with the grid
     // if it moves horizontal, change the direction when it touches the x boundary
@@ -313,6 +326,7 @@ class chara2{
     this.direction = 1; // direction of character's movement (1 = move right or move down; -1 = move left or move up)
     this.Horizontal = charaDetails.state; // true if the character moves horizontally, and false if it moves vertically
     this.boundary = charaDetails.boundary; // set the boundary in which the character can move
+    // Store the state of whether the character collide horizontally or vertically
     this.collidedHorizontal = false;
     this.collidedVertical = false;
   }
